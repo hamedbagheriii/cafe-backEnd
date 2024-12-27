@@ -18,6 +18,9 @@ export class authClass {
     return await Prisma.sessiontoken.findUnique({
       where: {
         token,
+      },
+      include : {
+        userData : true
       }
     });
   }

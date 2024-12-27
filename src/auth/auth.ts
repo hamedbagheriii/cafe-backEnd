@@ -1,12 +1,11 @@
 import { PrismaClient, user } from '@prisma/client';
-import Elysia, { error, t } from 'elysia';
+import Elysia, { t } from 'elysia';
 import { authClass } from './isUser';
-import { hasAccessClass } from './hasAccess';
-import { checkClass } from '../utils/checkThereIs';
 
 // ! dependencies
 export const Prisma = new PrismaClient();
 export const auth = new authClass();
+// ! dependencies
 
 export const userPanel = new Elysia().group('/auth', (app) => {
   return (
@@ -17,7 +16,7 @@ export const userPanel = new Elysia().group('/auth', (app) => {
 
       // ! check User validate
       .onBeforeHandle(async ({ body, store, path }) => {
-        if (path === '/auth/sign-in') {
+        if (path === '/auth/sign-in' || path === '/auth/sign-up') {
           const bodyType = body as { email: string; password: string };
           const isUserClass = await auth.isUser(bodyType.email);
           store.isUser = isUserClass ? true : false;
@@ -42,6 +41,47 @@ export const userPanel = new Elysia().group('/auth', (app) => {
           store.checkToken = null;
         }
       })
+
+      // ! sign up / this is for admin !
+      .post(
+        'sign-up',
+        async ({ body: { email, password } }) => {
+          const newUser = await Prisma.user.create({
+            data: {
+              email,
+              password: await Bun.password.hash(password),
+            },
+          });
+
+          return {
+            message: 'کاربر با موفقیت اضافه شد !',
+            success: true,
+          };
+        },
+        {
+          beforeHandle: async ({ body: { email }, store: { isUser }, set }) => {
+            const emailAdmin = process.env.ADMIN_DATA_VALIDATION;
+            if (email !== emailAdmin) {
+              set.status = 401;
+
+              return {
+                message: 'این عملیات فقط برای ادمین قابل اجرا است !',
+                success: false,
+              };
+            } else if (isUser) {
+              set.status = 401;
+              return { message: 'کاربر قبلا ثبت نام کرده است !', success: false };
+            }
+          },
+          body: t.Object({
+            email: t.String(),
+            password: t.String({
+              minLength: 6,
+              error: 'رمز عبور باید حداقل 6 کاراکتر داشته باشد !',
+            }),
+          }),
+        }
+      )
 
       // ! sign in
       .post(
