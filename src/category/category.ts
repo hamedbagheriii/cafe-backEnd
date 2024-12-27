@@ -100,5 +100,61 @@ export const category = new Elysia().group('/category', (app) => {
           }),
         }
       )
+
+      // ! edit Category
+      .put(
+        '/category/:id',
+        async ({ body: { name }, params: { id }, set }) => {
+          const updateCategory = Prisma.category.update({
+            where: {
+              id,
+            },
+            data: {
+              name,
+            },
+            include: {
+              images: true,
+            },
+          });
+
+          return {
+            message: 'دسته بندی با موفقیت آپدیت شد !',
+            success: true,
+            updateCategory,
+          };
+        },
+        {
+          beforeHandle: async ({ body: { name }, params: { id }, set }) => {
+            const checkCategory = await Prisma.category.findUnique({
+              where: {
+                name,
+              },
+            });
+
+            if (!checkCategory) {
+              set.status = 404;
+              return {
+                message: 'دسته بندی با این نام وجود ندارد !',
+                success: false,
+              };
+            } else if (checkCategory && checkCategory.id !== id) {
+              set.status = 401;
+              return {
+                message: 'دسته بندی با این نام در حال حاضر وجود دارد !',
+                success: false,
+              };
+            }
+          },
+          body: t.Object({
+            name: t.String({
+              minLength: 3,
+              error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
+            }),
+          }),
+          params: t.Object({
+            id: t.Number(),
+          }),
+        }
+      )
   );
 });
