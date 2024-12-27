@@ -18,42 +18,7 @@ export class authClass {
     return await Prisma.sessiontoken.findUnique({
       where: {
         token,
-      },
-      include: {
-        userData: {
-          include: {
-            tickets: {
-              include : {
-                movieData: true,
-                rows: true,
-                cinemaData: true,
-                hallData: true,
-              }
-            },
-            wallet : true,
-            token : true,
-            roles : {
-              include :{
-                roleData : {
-                  include : {
-                    permissions : {
-                      include : {
-                        permissionData : {
-                          select : {
-                            category : true,
-                            id : true,
-                            permName : true ,
-                          }
-                        }
-                      }
-                    }
-                  }
-                },
-              }
-            },
-          },
-        },
-      },
+      }
     });
   }
 }
