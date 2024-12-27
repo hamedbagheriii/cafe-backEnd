@@ -1,0 +1,58 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+  engineType    = "binary"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ! ----- MODELS FOR USER ----- !
+
+model user {
+  id        String         @id @unique @default(cuid())
+  email     String         @unique
+  fristName String
+  lastName  String
+  password  String
+  token     sessiontoken[]
+}
+
+model sessiontoken {
+  id       Int    @id @default(autoincrement())
+  token    String @unique
+  userData user   @relation(fields: [userId], references: [id])
+  userId   String
+}
+
+// ! ----- MODELS FOR CATEGORY ----- !
+
+model category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  products  product[]
+  images images[]
+}
+
+model product {
+  id   Int    @id @unique @default(autoincrement())
+  name String @unique
+  price Int
+  categoryData category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  images images[]
+}
+
+// ! ----- MODELS FOR IMAGES ----- !
+
+model images {
+  id         String  @id @default(cuid())
+  name       String  @unique
+  url        String
+  categoryData  category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+  productData  product? @relation(fields: [productId], references: [id])
+  productId Int?
+}
