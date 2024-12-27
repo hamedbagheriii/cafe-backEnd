@@ -29,7 +29,7 @@ export class imgAWC {
       await s3Client.send(new PutObjectCommand(uploadParams));
 
       // create url for file =>
-      const fileUrl = `https://cinemaproject.s3.ir-thr-at1.arvanstorage.ir/${Bucket}/${uploadParams.Key}`;
+      const fileUrl = `https://cafeproject.s3.ir-thr-at1.arvanstorage.ir/${Bucket}/${uploadParams.Key}`;
 
       return {
         success: true,

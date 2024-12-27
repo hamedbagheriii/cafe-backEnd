@@ -5,6 +5,7 @@ import { authClass } from './isUser';
 // ! dependencies
 export const Prisma = new PrismaClient();
 export const auth = new authClass();
+export const emailAdmin = process.env.ADMIN_DATA_VALIDATION;
 // ! dependencies
 
 export const userPanel = new Elysia().group('/auth', (app) => {
@@ -60,7 +61,6 @@ export const userPanel = new Elysia().group('/auth', (app) => {
         },
         {
           beforeHandle: async ({ body: { email }, store: { isUser }, set }) => {
-            const emailAdmin = process.env.ADMIN_DATA_VALIDATION;
             if (email !== emailAdmin) {
               set.status = 401;
 

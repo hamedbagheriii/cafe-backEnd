@@ -2,11 +2,8 @@ import swagger from '@elysiajs/swagger';
 import { Elysia, error, t } from 'elysia';
 import { userPanel } from './auth/auth';
 import { movie } from './movie/movie';
-import { ticket } from './tickets/ticket';
-import { cinema } from './cinema/cinema';
 import cors from '@elysiajs/cors';
-import { wallets } from './wallet/wallet';
-import { role } from './roles/role';
+import { category } from './category/category';
 
 const app = new Elysia()
   .use(
@@ -19,10 +16,6 @@ const app = new Elysia()
   )
   .use(swagger())
   .use(userPanel)
-  .use(movie)
-  .use(ticket)
-  .use(cinema)
-  .use(wallets)
-  .use(role)
+  .use(category)
 
   .listen(3100);
