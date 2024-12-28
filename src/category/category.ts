@@ -6,6 +6,7 @@ export const category = new Elysia().group('/category', (app) => {
   return (
     app
       .state('checkToken', null as any)
+      .state('checkCategory', null as any)
 
       // ! check Token validate
       .guard({
@@ -101,6 +102,28 @@ export const category = new Elysia().group('/category', (app) => {
         }
       )
 
+      // ! check Category validate
+      .onBeforeHandle(async ({ params, store, set }) => {
+        const { id }: { id: number } = params as any;
+        const checkCategory = await Prisma.category.findUnique({
+          where: {
+            id,
+          },
+        });
+
+        if (!checkCategory) {
+          set.status = 404;
+          store.checkCategory = null;
+
+          return {
+            message: 'دسته بندی با این آیدی وجود ندارد !',
+            success: false,
+          };
+        } else {
+          store.checkCategory = checkCategory;
+        }
+      })
+
       // ! edit Category
       .put(
         '/category/:id',
@@ -131,13 +154,7 @@ export const category = new Elysia().group('/category', (app) => {
               },
             });
 
-            if (!checkCategory) {
-              set.status = 404;
-              return {
-                message: 'دسته بندی با این نام وجود ندارد !',
-                success: false,
-              };
-            } else if (checkCategory && checkCategory.id !== id) {
+            if (checkCategory && checkCategory.id !== id) {
               set.status = 401;
               return {
                 message: 'دسته بندی با این نام در حال حاضر وجود دارد !',
@@ -151,6 +168,29 @@ export const category = new Elysia().group('/category', (app) => {
               error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
             }),
           }),
+          params: t.Object({
+            id: t.Number(),
+          }),
+        }
+      )
+
+      // ! delete Category
+      .delete(
+        'delete/:id',
+        async ({ params: { id } }) => {
+          const delCategory = Prisma.category.delete({
+            where: {
+              id,
+            },
+          });
+
+          return {
+            message: 'دسته بندی با موفقیت حذف شد !',
+            success: true,
+            delCategory,
+          };
+        },
+        {
           params: t.Object({
             id: t.Number(),
           }),
