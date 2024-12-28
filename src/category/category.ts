@@ -8,6 +8,46 @@ export const category = new Elysia().group('/category', (app) => {
       .state('checkToken', null as any)
       .state('checkCategory', null as any)
 
+      // ! get all Category
+      .get(
+        '/:id?',
+        async ({ params: { id } }) => {
+          let allCategory;
+          const include = {
+            images: true,
+            products: {
+              include: {
+                images: true,
+              },
+            },
+          };
+
+          if (id) {
+            allCategory = await Prisma.category.findUnique({
+              where: {
+                id,
+              },
+              include,
+            });
+          } else {
+            allCategory = await Prisma.category.findMany({
+              include,
+            });
+          }
+
+          return {
+            success: true,
+            message: 'دسته بندی ها با موفقیت بازیافت شد !',
+            allCategory,
+          };
+        },
+        {
+          params: t.Object({
+            id: t.Optional(t.Number()),
+          }),
+        }
+      )
+
       // ! check Token validate
       .guard({
         headers: t.Object({
