@@ -168,7 +168,7 @@ export const category = new Elysia().group('/category', (app) => {
       .put(
         '/category/:id',
         async ({ body: { name }, params: { id }, set }) => {
-          const updateCategory = Prisma.category.update({
+          const updateCategory = await Prisma.category.update({
             where: {
               id,
             },
@@ -218,16 +218,23 @@ export const category = new Elysia().group('/category', (app) => {
       .delete(
         'delete/:id',
         async ({ params: { id } }) => {
-          const delCategory = Prisma.category.delete({
-            where: {
-              id,
-            },
-          });
+          const delCategory = await Prisma.images
+            .deleteMany({
+              where: {
+                categoryId: id,
+              },
+            })
+            .then( async (res) => {
+              return await Prisma.category.delete({
+                where: {
+                  id,
+                },
+              });
+            });
 
           return {
             message: 'دسته بندی با موفقیت حذف شد !',
             success: true,
-            delCategory,
           };
         },
         {
