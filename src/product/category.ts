@@ -6,6 +6,7 @@ export const product = new Elysia().group('/product', (app) => {
   return (
     app
       .state('checkToken', null as any)
+      .state('checkProduct', null as any)
 
       // ! get all Category
       .get(
@@ -47,7 +48,7 @@ export const product = new Elysia().group('/product', (app) => {
         }
       )
 
-      // // ! check Token validate
+      // ! check Token validate
       .guard({
         headers: t.Object({
           authorization: t.String({ error: 'توکن اشتباه است !' }),
@@ -156,77 +157,96 @@ export const product = new Elysia().group('/product', (app) => {
         }
       )
 
-    // // ! check Category validate
-    // .onBeforeHandle(async ({ params, store, set }) => {
-    //   const { id }: { id: number } = params as any;
-    //   const checkCategory = await Prisma.category.findUnique({
-    //     where: {
-    //       id,
-    //     },
-    //   });
+      // ! check Category validate
+      .onBeforeHandle(async ({ params, store, set }) => {
+        const { id }: { id: number } = params as any;
+        const checkProduct = await Prisma.product.findUnique({
+          where: {
+            id,
+          },
+        });
 
-    //   if (!checkCategory) {
-    //     set.status = 404;
-    //     store.checkCategory = null;
+        if (!checkProduct) {
+          set.status = 404;
+          store.checkProduct = null;
 
-    //     return {
-    //       message: 'دسته بندی با این آیدی وجود ندارد !',
-    //       success: false,
-    //     };
-    //   } else {
-    //     store.checkCategory = checkCategory;
-    //   }
-    // })
+          return {
+            message: 'محصول با این آیدی وجود ندارد !',
+            success: false,
+          };
+        } else {
+          store.checkProduct = checkProduct;
+        }
+      })
 
-    // // ! edit Category
-    // .put(
-    //   '/category/:id',
-    //   async ({ body: { name }, params: { id }, set }) => {
-    //     const updateCategory = await Prisma.category.update({
-    //       where: {
-    //         id,
-    //       },
-    //       data: {
-    //         name,
-    //       },
-    //       include: {
-    //         images: true,
-    //       },
-    //     });
+      // ! edit Category
+      .put(
+        '/category/:id',
+        async ({
+          body: { name, price, decription, categoryId },
+          params: { id },
+          set,
+        }) => {
+          const updateCategory = await Prisma.product.update({
+            where: {
+              id,
+            },
+            data: {
+              name,
+              price,
+              decription,
+              categoryId,
+            },
+            include: {
+              images: true,
+            },
+          });
 
-    //     return {
-    //       message: 'دسته بندی با موفقیت آپدیت شد !',
-    //       success: true,
-    //       updateCategory,
-    //     };
-    //   },
-    //   {
-    //     beforeHandle: async ({ body: { name }, params: { id }, set }) => {
-    //       const checkCategory = await Prisma.category.findUnique({
-    //         where: {
-    //           name,
-    //         },
-    //       });
+          return {
+            message: 'محصول با موفقیت آپدیت شد !',
+            success: true,
+            updateCategory,
+          };
+        },
+        {
+          beforeHandle: async ({ body: { name }, params: { id }, set }) => {
+            const checkProduct = await Prisma.product.findUnique({
+              where: {
+                name,
+              },
+            });
 
-    //       if (checkCategory && checkCategory.id !== id) {
-    //         set.status = 401;
-    //         return {
-    //           message: 'دسته بندی با این نام در حال حاضر وجود دارد !',
-    //           success: false,
-    //         };
-    //       }
-    //     },
-    //     body: t.Object({
-    //       name: t.String({
-    //         minLength: 3,
-    //         error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
-    //       }),
-    //     }),
-    //     params: t.Object({
-    //       id: t.Number(),
-    //     }),
-    //   }
-    // )
+            if (checkProduct && checkProduct.id !== id) {
+              set.status = 401;
+              return {
+                message: 'محصول با این نام در حال حاضر وجود دارد !',
+                success: false,
+              };
+            }
+          },
+          body: t.Object({
+            name: t.String({
+              minLength: 3,
+              error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
+            }),
+            price: t.Number({
+              error: 'حداقل قیمت باید ۱۰۰۰ تومان باشد !',
+              minimum: 1000,
+            }),
+            categoryId: t.Number({
+              error: 'شماره دسته بندی باید یک عدد باشد !',
+              minimum: 1,
+            }),
+            decription: t.String({
+              error: 'توضیحات باید بیش از 5 کاراکتر باشد !',
+              minLength: 5,
+            }),
+          }),
+          params: t.Object({
+            id: t.Number(),
+          }),
+        }
+      )
 
     // // ! delete Category
     // .delete(
