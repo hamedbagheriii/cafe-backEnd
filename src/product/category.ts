@@ -11,10 +11,10 @@ export const product = new Elysia().group('/product', (app) => {
       .get(
         '/:id?',
         async ({ params: { id } }) => {
-          let allCategory;
+          let allProduct;
           const include = {
             images: true,
-            products: {
+            categoryData: {
               include: {
                 images: true,
               },
@@ -22,22 +22,22 @@ export const product = new Elysia().group('/product', (app) => {
           };
 
           if (id) {
-            allCategory = await Prisma.category.findUnique({
+            allProduct = await Prisma.product.findUnique({
               where: {
                 id,
               },
               include,
             });
           } else {
-            allCategory = await Prisma.category.findMany({
+            allProduct = await Prisma.product.findMany({
               include,
             });
           }
 
           return {
             success: true,
-            message: 'دسته بندی ها با موفقیت بازیافت شد !',
-            allCategory,
+            message: ' محصولات ها با موفقیت بازیافت شد !',
+            allProduct,
           };
         },
         {
@@ -47,200 +47,200 @@ export const product = new Elysia().group('/product', (app) => {
         }
       )
 
-      // // ! check Token validate
-      // .guard({
-      //   headers: t.Object({
-      //     authorization: t.String({ error: 'توکن اشتباه است !' }),
-      //   }),
-      // })
-      // .onBeforeHandle(async ({ headers: { authorization }, store, set }) => {
-      //   const checkToken = await auth.checkToken((authorization as string) || '');
-      //   if (checkToken !== null && checkToken.userData.email === emailAdmin) {
-      //     store.checkToken = checkToken;
-      //   } else {
-      //     return {
-      //       message: 'توکن اشتباه است !',
-      //       success: false,
-      //     };
-      //   }
-      // })
+    // // ! check Token validate
+    // .guard({
+    //   headers: t.Object({
+    //     authorization: t.String({ error: 'توکن اشتباه است !' }),
+    //   }),
+    // })
+    // .onBeforeHandle(async ({ headers: { authorization }, store, set }) => {
+    //   const checkToken = await auth.checkToken((authorization as string) || '');
+    //   if (checkToken !== null && checkToken.userData.email === emailAdmin) {
+    //     store.checkToken = checkToken;
+    //   } else {
+    //     return {
+    //       message: 'توکن اشتباه است !',
+    //       success: false,
+    //     };
+    //   }
+    // })
 
-      // // ! add category
-      // .post(
-      //   '/add',
-      //   async ({ body: { name, image }, set }) => {
-      //     //  upload image to s3 =>
-      //     const movieIMG = await imgAwcClass.uploadImage(image, 'cafeImage');
-      //     if (!movieIMG.success) {
-      //       set.status = 400;
-      //       return {
-      //         ...movieIMG,
-      //       };
-      //     }
+    // // ! add category
+    // .post(
+    //   '/add',
+    //   async ({ body: { name, image }, set }) => {
+    //     //  upload image to s3 =>
+    //     const movieIMG = await imgAwcClass.uploadImage(image, 'cafeImage');
+    //     if (!movieIMG.success) {
+    //       set.status = 400;
+    //       return {
+    //         ...movieIMG,
+    //       };
+    //     }
 
-      //     // add category =>
-      //     const newCategory = await Prisma.category.create({
-      //       data: {
-      //         name,
-      //         images: {
-      //           create: {
-      //             name,
-      //             url: movieIMG.fileUrl || '',
-      //           },
-      //         },
-      //       },
-      //       include: {
-      //         images: true,
-      //       },
-      //     });
+    //     // add category =>
+    //     const newCategory = await Prisma.category.create({
+    //       data: {
+    //         name,
+    //         images: {
+    //           create: {
+    //             name,
+    //             url: movieIMG.fileUrl || '',
+    //           },
+    //         },
+    //       },
+    //       include: {
+    //         images: true,
+    //       },
+    //     });
 
-      //     return {
-      //       success: true,
-      //       message: 'دسته بندی با موفقیت اضافه شد !',
-      //       newCategory,
-      //     };
-      //   },
-      //   {
-      //     beforeHandle: async ({ body: { image, name }, set }) => {
-      //       // check image =>
-      //       if (!image) {
-      //         set.status = 404;
-      //         return {
-      //           success: false,
-      //           message: 'عکس انتخاب نشده است !',
-      //         };
-      //       } else if (image.size <= 0) {
-      //         set.status = 400;
-      //         return {
-      //           success: false,
-      //           message: 'عکس انتخاب شده اطلاعاتی ندارد !',
-      //         };
-      //       }
+    //     return {
+    //       success: true,
+    //       message: 'دسته بندی با موفقیت اضافه شد !',
+    //       newCategory,
+    //     };
+    //   },
+    //   {
+    //     beforeHandle: async ({ body: { image, name }, set }) => {
+    //       // check image =>
+    //       if (!image) {
+    //         set.status = 404;
+    //         return {
+    //           success: false,
+    //           message: 'عکس انتخاب نشده است !',
+    //         };
+    //       } else if (image.size <= 0) {
+    //         set.status = 400;
+    //         return {
+    //           success: false,
+    //           message: 'عکس انتخاب شده اطلاعاتی ندارد !',
+    //         };
+    //       }
 
-      //       // check category =>
-      //       const checkCategory = await Prisma.category.findUnique({
-      //         where: {
-      //           name,
-      //         },
-      //       });
-      //       if (checkCategory) {
-      //         set.status = 400;
-      //         return {
-      //           success: false,
-      //           message: 'دسته بندی با این نام در حال حاضر وجود دارد !',
-      //         };
-      //       }
-      //     },
-      //     body: t.Object({
-      //       name: t.String({
-      //         minLength: 3,
-      //         error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
-      //       }),
-      //       image: t.File({ error: 'تصویر انتخاب نشده است !' }),
-      //     }),
-      //   }
-      // )
+    //       // check category =>
+    //       const checkCategory = await Prisma.category.findUnique({
+    //         where: {
+    //           name,
+    //         },
+    //       });
+    //       if (checkCategory) {
+    //         set.status = 400;
+    //         return {
+    //           success: false,
+    //           message: 'دسته بندی با این نام در حال حاضر وجود دارد !',
+    //         };
+    //       }
+    //     },
+    //     body: t.Object({
+    //       name: t.String({
+    //         minLength: 3,
+    //         error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
+    //       }),
+    //       image: t.File({ error: 'تصویر انتخاب نشده است !' }),
+    //     }),
+    //   }
+    // )
 
-      // // ! check Category validate
-      // .onBeforeHandle(async ({ params, store, set }) => {
-      //   const { id }: { id: number } = params as any;
-      //   const checkCategory = await Prisma.category.findUnique({
-      //     where: {
-      //       id,
-      //     },
-      //   });
+    // // ! check Category validate
+    // .onBeforeHandle(async ({ params, store, set }) => {
+    //   const { id }: { id: number } = params as any;
+    //   const checkCategory = await Prisma.category.findUnique({
+    //     where: {
+    //       id,
+    //     },
+    //   });
 
-      //   if (!checkCategory) {
-      //     set.status = 404;
-      //     store.checkCategory = null;
+    //   if (!checkCategory) {
+    //     set.status = 404;
+    //     store.checkCategory = null;
 
-      //     return {
-      //       message: 'دسته بندی با این آیدی وجود ندارد !',
-      //       success: false,
-      //     };
-      //   } else {
-      //     store.checkCategory = checkCategory;
-      //   }
-      // })
+    //     return {
+    //       message: 'دسته بندی با این آیدی وجود ندارد !',
+    //       success: false,
+    //     };
+    //   } else {
+    //     store.checkCategory = checkCategory;
+    //   }
+    // })
 
-      // // ! edit Category
-      // .put(
-      //   '/category/:id',
-      //   async ({ body: { name }, params: { id }, set }) => {
-      //     const updateCategory = await Prisma.category.update({
-      //       where: {
-      //         id,
-      //       },
-      //       data: {
-      //         name,
-      //       },
-      //       include: {
-      //         images: true,
-      //       },
-      //     });
+    // // ! edit Category
+    // .put(
+    //   '/category/:id',
+    //   async ({ body: { name }, params: { id }, set }) => {
+    //     const updateCategory = await Prisma.category.update({
+    //       where: {
+    //         id,
+    //       },
+    //       data: {
+    //         name,
+    //       },
+    //       include: {
+    //         images: true,
+    //       },
+    //     });
 
-      //     return {
-      //       message: 'دسته بندی با موفقیت آپدیت شد !',
-      //       success: true,
-      //       updateCategory,
-      //     };
-      //   },
-      //   {
-      //     beforeHandle: async ({ body: { name }, params: { id }, set }) => {
-      //       const checkCategory = await Prisma.category.findUnique({
-      //         where: {
-      //           name,
-      //         },
-      //       });
+    //     return {
+    //       message: 'دسته بندی با موفقیت آپدیت شد !',
+    //       success: true,
+    //       updateCategory,
+    //     };
+    //   },
+    //   {
+    //     beforeHandle: async ({ body: { name }, params: { id }, set }) => {
+    //       const checkCategory = await Prisma.category.findUnique({
+    //         where: {
+    //           name,
+    //         },
+    //       });
 
-      //       if (checkCategory && checkCategory.id !== id) {
-      //         set.status = 401;
-      //         return {
-      //           message: 'دسته بندی با این نام در حال حاضر وجود دارد !',
-      //           success: false,
-      //         };
-      //       }
-      //     },
-      //     body: t.Object({
-      //       name: t.String({
-      //         minLength: 3,
-      //         error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
-      //       }),
-      //     }),
-      //     params: t.Object({
-      //       id: t.Number(),
-      //     }),
-      //   }
-      // )
+    //       if (checkCategory && checkCategory.id !== id) {
+    //         set.status = 401;
+    //         return {
+    //           message: 'دسته بندی با این نام در حال حاضر وجود دارد !',
+    //           success: false,
+    //         };
+    //       }
+    //     },
+    //     body: t.Object({
+    //       name: t.String({
+    //         minLength: 3,
+    //         error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
+    //       }),
+    //     }),
+    //     params: t.Object({
+    //       id: t.Number(),
+    //     }),
+    //   }
+    // )
 
-      // // ! delete Category
-      // .delete(
-      //   'delete/:id',
-      //   async ({ params: { id } }) => {
-      //     const delCategory = await Prisma.images
-      //       .deleteMany({
-      //         where: {
-      //           categoryId: id,
-      //         },
-      //       })
-      //       .then( async (res) => {
-      //         return await Prisma.category.delete({
-      //           where: {
-      //             id,
-      //           },
-      //         });
-      //       });
+    // // ! delete Category
+    // .delete(
+    //   'delete/:id',
+    //   async ({ params: { id } }) => {
+    //     const delCategory = await Prisma.images
+    //       .deleteMany({
+    //         where: {
+    //           categoryId: id,
+    //         },
+    //       })
+    //       .then( async (res) => {
+    //         return await Prisma.category.delete({
+    //           where: {
+    //             id,
+    //           },
+    //         });
+    //       });
 
-      //     return {
-      //       message: 'دسته بندی با موفقیت حذف شد !',
-      //       success: true,
-      //     };
-      //   },
-      //   {
-      //     params: t.Object({
-      //       id: t.Number(),
-      //     }),
-      //   }
-      // )
+    //     return {
+    //       message: 'دسته بندی با موفقیت حذف شد !',
+    //       success: true,
+    //     };
+    //   },
+    //   {
+    //     params: t.Object({
+    //       id: t.Number(),
+    //     }),
+    //   }
+    // )
   );
 });
