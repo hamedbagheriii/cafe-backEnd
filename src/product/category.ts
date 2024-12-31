@@ -47,99 +47,114 @@ export const product = new Elysia().group('/product', (app) => {
         }
       )
 
-    // // ! check Token validate
-    // .guard({
-    //   headers: t.Object({
-    //     authorization: t.String({ error: 'توکن اشتباه است !' }),
-    //   }),
-    // })
-    // .onBeforeHandle(async ({ headers: { authorization }, store, set }) => {
-    //   const checkToken = await auth.checkToken((authorization as string) || '');
-    //   if (checkToken !== null && checkToken.userData.email === emailAdmin) {
-    //     store.checkToken = checkToken;
-    //   } else {
-    //     return {
-    //       message: 'توکن اشتباه است !',
-    //       success: false,
-    //     };
-    //   }
-    // })
+      // // ! check Token validate
+      .guard({
+        headers: t.Object({
+          authorization: t.String({ error: 'توکن اشتباه است !' }),
+        }),
+      })
+      .onBeforeHandle(async ({ headers: { authorization }, store, set }) => {
+        const checkToken = await auth.checkToken((authorization as string) || '');
+        if (checkToken !== null && checkToken.userData.email === emailAdmin) {
+          store.checkToken = checkToken;
+        } else {
+          return {
+            message: 'توکن اشتباه است !',
+            success: false,
+          };
+        }
+      })
 
-    // // ! add category
-    // .post(
-    //   '/add',
-    //   async ({ body: { name, image }, set }) => {
-    //     //  upload image to s3 =>
-    //     const movieIMG = await imgAwcClass.uploadImage(image, 'cafeImage');
-    //     if (!movieIMG.success) {
-    //       set.status = 400;
-    //       return {
-    //         ...movieIMG,
-    //       };
-    //     }
+      // ! add product
+      .post(
+        '/add',
+        async ({ body: { name, image, price, categoryId, decription }, set }) => {
+          //  upload image to s3 =>
+          const movieIMG = await imgAwcClass.uploadImage(image, 'cafeImage');
+          if (!movieIMG.success) {
+            set.status = 400;
+            return {
+              ...movieIMG,
+            };
+          }
 
-    //     // add category =>
-    //     const newCategory = await Prisma.category.create({
-    //       data: {
-    //         name,
-    //         images: {
-    //           create: {
-    //             name,
-    //             url: movieIMG.fileUrl || '',
-    //           },
-    //         },
-    //       },
-    //       include: {
-    //         images: true,
-    //       },
-    //     });
+          // add product =>
+          const newProduct = await Prisma.product.create({
+            data: {
+              name,
+              images: {
+                create: {
+                  name,
+                  url: movieIMG.fileUrl || '',
+                },
+              },
+              decription,
+              price,
+              categoryId,
+            },
+            include: {
+              images: true,
+            },
+          });
 
-    //     return {
-    //       success: true,
-    //       message: 'دسته بندی با موفقیت اضافه شد !',
-    //       newCategory,
-    //     };
-    //   },
-    //   {
-    //     beforeHandle: async ({ body: { image, name }, set }) => {
-    //       // check image =>
-    //       if (!image) {
-    //         set.status = 404;
-    //         return {
-    //           success: false,
-    //           message: 'عکس انتخاب نشده است !',
-    //         };
-    //       } else if (image.size <= 0) {
-    //         set.status = 400;
-    //         return {
-    //           success: false,
-    //           message: 'عکس انتخاب شده اطلاعاتی ندارد !',
-    //         };
-    //       }
+          return {
+            success: true,
+            message: 'دسته بندی با موفقیت اضافه شد !',
+            newProduct,
+          };
+        },
+        {
+          beforeHandle: async ({ body: { image, name }, set }) => {
+            // check image =>
+            if (!image) {
+              set.status = 404;
+              return {
+                success: false,
+                message: 'عکس انتخاب نشده است !',
+              };
+            } else if (image.size <= 0) {
+              set.status = 400;
+              return {
+                success: false,
+                message: 'عکس انتخاب شده اطلاعاتی ندارد !',
+              };
+            }
 
-    //       // check category =>
-    //       const checkCategory = await Prisma.category.findUnique({
-    //         where: {
-    //           name,
-    //         },
-    //       });
-    //       if (checkCategory) {
-    //         set.status = 400;
-    //         return {
-    //           success: false,
-    //           message: 'دسته بندی با این نام در حال حاضر وجود دارد !',
-    //         };
-    //       }
-    //     },
-    //     body: t.Object({
-    //       name: t.String({
-    //         minLength: 3,
-    //         error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
-    //       }),
-    //       image: t.File({ error: 'تصویر انتخاب نشده است !' }),
-    //     }),
-    //   }
-    // )
+            // check product =>
+            const checkProduc = await Prisma.product.findUnique({
+              where: {
+                name,
+              },
+            });
+            if (checkProduc) {
+              set.status = 400;
+              return {
+                success: false,
+                message: ' محصول با این نام در حال حاضر وجود دارد !',
+              };
+            }
+          },
+          body: t.Object({
+            name: t.String({
+              minLength: 3,
+              error: 'نام باید دارای حداقل 3 کاراکتر باشد  !',
+            }),
+            image: t.File({ error: 'تصویر انتخاب نشده است !' }),
+            price: t.Number({
+              error: 'حداقل قیمت باید ۱۰۰۰ تومان باشد !',
+              minimum: 1000,
+            }),
+            categoryId: t.Number({
+              error: 'شماره دسته بندی باید یک عدد باشد !',
+              minimum: 1,
+            }),
+            decription: t.String({
+              error: 'توضیحات باید بیش از 5 کاراکتر باشد !',
+              minLength: 5,
+            }),
+          }),
+        }
+      )
 
     // // ! check Category validate
     // .onBeforeHandle(async ({ params, store, set }) => {

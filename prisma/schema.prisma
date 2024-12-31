@@ -37,7 +37,7 @@ model category {
 model product {
   id   Int    @id @unique @default(autoincrement())
   name String @unique
-  // decription String
+  decription String
   price Int
   categoryData category @relation(fields: [categoryId], references: [id])
   categoryId Int
