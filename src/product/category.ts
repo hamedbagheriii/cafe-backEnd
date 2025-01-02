@@ -8,7 +8,7 @@ export const product = new Elysia().group('/product', (app) => {
       .state('checkToken', null as any)
       .state('checkProduct', null as any)
 
-      // ! get all Category
+      // ! get all product
       .get(
         '/:id?',
         async ({ params: { id } }) => {
@@ -157,7 +157,7 @@ export const product = new Elysia().group('/product', (app) => {
         }
       )
 
-      // ! check Category validate
+      // ! check product validate
       .onBeforeHandle(async ({ params, store, set }) => {
         const { id }: { id: number } = params as any;
         const checkProduct = await Prisma.product.findUnique({
@@ -179,7 +179,7 @@ export const product = new Elysia().group('/product', (app) => {
         }
       })
 
-      // ! edit Category
+      // ! edit product
       .put(
         '/category/:id',
         async ({
@@ -248,34 +248,34 @@ export const product = new Elysia().group('/product', (app) => {
         }
       )
 
-    // // ! delete Category
-    // .delete(
-    //   'delete/:id',
-    //   async ({ params: { id } }) => {
-    //     const delCategory = await Prisma.images
-    //       .deleteMany({
-    //         where: {
-    //           categoryId: id,
-    //         },
-    //       })
-    //       .then( async (res) => {
-    //         return await Prisma.category.delete({
-    //           where: {
-    //             id,
-    //           },
-    //         });
-    //       });
+      // ! delete product
+      .delete(
+        'delete/:id',
+        async ({ params: { id } }) => {
+          const delProduct = await Prisma.images
+            .deleteMany({
+              where: {
+                productId: id,
+              },
+            })
+            .then(async (res) => {
+              return await Prisma.product.delete({
+                where: {
+                  id,
+                },
+              });
+            });
 
-    //     return {
-    //       message: 'دسته بندی با موفقیت حذف شد !',
-    //       success: true,
-    //     };
-    //   },
-    //   {
-    //     params: t.Object({
-    //       id: t.Number(),
-    //     }),
-    //   }
-    // )
+          return {
+            message: 'محصول با موفقیت حذف شد !',
+            success: true,
+          };
+        },
+        {
+          params: t.Object({
+            id: t.Number(),
+          }),
+        }
+      )
   );
 });
